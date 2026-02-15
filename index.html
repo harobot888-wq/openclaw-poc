@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Calculator + Currency</title>
+    <title>Green Calculator</title>
     <style>
         body {
-            background-color: black;
-            color: white;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); /* Deep Green/Blue Gradient */
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -19,87 +19,116 @@
 
         .calculator {
             width: 100%;
-            max-width: 320px;
-            padding: 20px;
+            max-width: 340px;
+            padding: 25px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             height: 100%;
-            max-height: 650px;
+            max-height: 700px;
+            background: rgba(255, 255, 255, 0.05); /* Glassmorphism */
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .display-container {
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             text-align: right;
             padding-right: 10px;
         }
 
         .display {
             font-size: 70px;
-            font-weight: 300;
+            font-weight: 200;
+            color: #fff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             height: 80px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
         }
 
         .sub-display {
-            font-size: 30px;
-            color: #a5a5a5;
+            font-size: 28px;
+            color: #00ff88; /* Neon Green */
             height: 40px;
             margin-top: 5px;
             font-weight: 400;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.4);
         }
 
         .buttons {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+            gap: 15px;
         }
 
         button {
             border: none;
-            border-radius: 50%;
-            font-size: 30px;
-            height: 70px;
-            width: 70px;
+            border-radius: 20px; /* Squircle */
+            font-size: 28px;
+            height: 65px;
+            width: 65px;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: all 0.2s ease;
             display: flex;
             justify-content: center;
             align-items: center;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         button:active {
-            opacity: 0.7;
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .btn-gray { background-color: #a5a5a5; color: black; }
-        .btn-dark { background-color: #333333; color: white; }
-        .btn-orange { background-color: #ff9f0a; color: white; }
+        /* Button Styles */
+        .btn-glass {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, #00b09b, #96c93d); /* Green Gradient */
+            color: #000;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-op {
+            background: rgba(0, 0, 0, 0.3);
+            color: #00ff88;
+            font-weight: 500;
+        }
         
         .btn-zero {
             grid-column: span 2;
             width: 100%;
-            border-radius: 35px;
-            padding-left: 30px;
+            border-radius: 20px;
+            padding-left: 25px;
             justify-content: flex-start;
         }
         
-        /* Currency Toggle Button Style */
         .btn-currency {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             line-height: 1.2;
             flex-direction: column;
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.2);
         }
 
-        @media (max-width: 350px) {
+        @media (max-width: 360px) {
             button { height: 60px; width: 60px; font-size: 24px; }
             .display { font-size: 50px; }
+            .calculator { padding: 15px; border-radius: 0; max-height: 100vh; }
         }
     </style>
 </head>
@@ -112,32 +141,32 @@
     </div>
 
     <div class="buttons">
-        <button class="btn-gray" onclick="clearDisplay()">AC</button>
-        <button class="btn-gray" onclick="toggleSign()">+/-</button>
-        <button class="btn-gray" onclick="percent()">%</button>
-        <button class="btn-orange" onclick="setOperation('/')">÷</button>
+        <button class="btn-op" onclick="clearDisplay()">AC</button>
+        <button class="btn-op" onclick="toggleSign()">+/-</button>
+        <button class="btn-op" onclick="percent()">%</button>
+        <button class="btn-accent" onclick="setOperation('/')">÷</button>
 
-        <button class="btn-dark" onclick="appendNumber('7')">7</button>
-        <button class="btn-dark" onclick="appendNumber('8')">8</button>
-        <button class="btn-dark" onclick="appendNumber('9')">9</button>
-        <button class="btn-orange" onclick="setOperation('*')">×</button>
+        <button class="btn-glass" onclick="appendNumber('7')">7</button>
+        <button class="btn-glass" onclick="appendNumber('8')">8</button>
+        <button class="btn-glass" onclick="appendNumber('9')">9</button>
+        <button class="btn-accent" onclick="setOperation('*')">×</button>
 
-        <button class="btn-dark" onclick="appendNumber('4')">4</button>
-        <button class="btn-dark" onclick="appendNumber('5')">5</button>
-        <button class="btn-dark" onclick="appendNumber('6')">6</button>
-        <button class="btn-orange" onclick="setOperation('-')">−</button>
+        <button class="btn-glass" onclick="appendNumber('4')">4</button>
+        <button class="btn-glass" onclick="appendNumber('5')">5</button>
+        <button class="btn-glass" onclick="appendNumber('6')">6</button>
+        <button class="btn-accent" onclick="setOperation('-')">−</button>
 
-        <button class="btn-dark" onclick="appendNumber('1')">1</button>
-        <button class="btn-dark" onclick="appendNumber('2')">2</button>
-        <button class="btn-dark" onclick="appendNumber('3')">3</button>
-        <button class="btn-orange" onclick="setOperation('+')">+</button>
+        <button class="btn-glass" onclick="appendNumber('1')">1</button>
+        <button class="btn-glass" onclick="appendNumber('2')">2</button>
+        <button class="btn-glass" onclick="appendNumber('3')">3</button>
+        <button class="btn-accent" onclick="setOperation('+')">+</button>
 
-        <button class="btn-dark btn-zero" onclick="appendNumber('0')">0</button>
-        <button class="btn-dark" onclick="appendDot()">.</button>
-        <!-- Currency Toggle Button -->
-        <button class="btn-orange btn-currency" onclick="toggleCurrencyMode()">
+        <button class="btn-glass btn-zero" onclick="appendNumber('0')">0</button>
+        <button class="btn-glass" onclick="appendDot()">.</button>
+        <button class="btn-currency" onclick="toggleCurrencyMode()">
             <span id="currencyLabel">USD<br>↓<br>JPY</span>
         </button>
+        <button class="btn-accent" onclick="calculate()">=</button>
     </div>
 </div>
 
@@ -155,30 +184,27 @@
     const subDisplayElement = document.getElementById('subDisplay');
     const currencyLabel = document.getElementById('currencyLabel');
 
-    // Fetch live rate immediately
+    // Fetch live rate
     fetch('https://api.exchangerate-api.com/v4/latest/USD')
         .then(response => response.json())
         .then(data => {
             if (data && data.rates && data.rates.JPY) {
                 exchangeRate = data.rates.JPY;
-                updateDisplay(); // update initial sub-display with live rate
+                updateDisplay();
             }
         })
-        .catch(err => console.log('Currency fetch failed, using fallback 150.0'));
+        .catch(err => console.log('Currency fetch failed'));
 
     function updateDisplay() {
-        // Main Display Logic
         let displayValue = currentInput;
         if (displayValue.length > 9) {
             displayValue = displayValue.substring(0, 9);
         }
         displayElement.innerText = displayValue;
         
-        // Font scaling
         if (displayValue.length > 6) displayElement.style.fontSize = '50px';
         else displayElement.style.fontSize = '70px';
 
-        // Currency Conversion Logic
         const numericValue = parseFloat(currentInput);
         if (!isNaN(numericValue)) {
             let converted;
@@ -192,7 +218,6 @@
                 symbol = '$';
             }
             
-            // Format with commas
             subDisplayElement.innerText = symbol + ' ' + parseFloat(converted).toLocaleString();
         } else {
             subDisplayElement.innerText = '';
