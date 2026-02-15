@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Calculator</title>
+    <title>Calculator + Currency</title>
     <style>
         body {
             background-color: black;
@@ -14,34 +14,42 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden; /* Prevent scrolling on mobile */
+            overflow: hidden;
         }
 
         .calculator {
             width: 100%;
-            max-width: 320px; /* iPhone width-ish */
+            max-width: 320px;
             padding: 20px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            height: 100%; /* Fill screen on mobile */
-            max-height: 600px; /* Limit height on desktop */
+            height: 100%;
+            max-height: 650px;
+        }
+
+        .display-container {
+            margin-bottom: 20px;
+            text-align: right;
+            padding-right: 10px;
         }
 
         .display {
-            font-size: 80px;
-            text-align: right;
-            margin-bottom: 20px;
-            padding-right: 20px;
+            font-size: 70px;
             font-weight: 300;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            height: 100px; /* Fixed height for display */
-            display: flex;
-            align-items: flex-end;
-            justify-content: flex-end;
+            height: 80px;
+        }
+
+        .sub-display {
+            font-size: 30px;
+            color: #a5a5a5;
+            height: 40px;
+            margin-top: 5px;
+            font-weight: 400;
         }
 
         .buttons {
@@ -53,9 +61,9 @@
         button {
             border: none;
             border-radius: 50%;
-            font-size: 32px;
-            height: 70px; /* Fixed height */
-            width: 70px;  /* Fixed width (mostly) */
+            font-size: 30px;
+            height: 70px;
+            width: 70px;
             cursor: pointer;
             transition: opacity 0.2s;
             display: flex;
@@ -69,49 +77,40 @@
             opacity: 0.7;
         }
 
-        /* Colors */
-        .btn-gray {
-            background-color: #a5a5a5;
-            color: black;
-        }
-
-        .btn-dark {
-            background-color: #333333;
-            color: white;
-        }
-
-        .btn-orange {
-            background-color: #ff9f0a;
-            color: white;
-            font-weight: 500;
-        }
-
-        /* Specific button styling */
+        .btn-gray { background-color: #a5a5a5; color: black; }
+        .btn-dark { background-color: #333333; color: white; }
+        .btn-orange { background-color: #ff9f0a; color: white; }
+        
         .btn-zero {
             grid-column: span 2;
-            width: 100%; /* Stretch across 2 columns */
-            border-radius: 35px; /* Pill shape */
-            padding-left: 30px; /* Align text leftish */
+            width: 100%;
+            border-radius: 35px;
+            padding-left: 30px;
             justify-content: flex-start;
         }
+        
+        /* Currency Toggle Button Style */
+        .btn-currency {
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1.2;
+            flex-direction: column;
+        }
 
-        /* Responsive tweaks */
         @media (max-width: 350px) {
-            button {
-                height: 60px;
-                width: 60px;
-                font-size: 24px;
-            }
-            .display {
-                font-size: 60px;
-            }
+            button { height: 60px; width: 60px; font-size: 24px; }
+            .display { font-size: 50px; }
         }
     </style>
 </head>
 <body>
 
 <div class="calculator">
-    <div class="display" id="display">0</div>
+    <div class="display-container">
+        <div class="display" id="display">0</div>
+        <div class="sub-display" id="subDisplay">¥ 0</div>
+    </div>
+
     <div class="buttons">
         <button class="btn-gray" onclick="clearDisplay()">AC</button>
         <button class="btn-gray" onclick="toggleSign()">+/-</button>
@@ -135,7 +134,10 @@
 
         <button class="btn-dark btn-zero" onclick="appendNumber('0')">0</button>
         <button class="btn-dark" onclick="appendDot()">.</button>
-        <button class="btn-orange" onclick="calculate()">=</button>
+        <!-- Currency Toggle Button -->
+        <button class="btn-orange btn-currency" onclick="toggleCurrencyMode()">
+            <span id="currencyLabel">USD<br>↓<br>JPY</span>
+        </button>
     </div>
 </div>
 
@@ -144,23 +146,68 @@
     let previousInput = null;
     let operation = null;
     let shouldResetDisplay = false;
+    
+    // Currency State
+    let exchangeRate = 150.0; // Fallback rate
+    let currencyMode = 'USD_TO_JPY'; // or 'JPY_TO_USD'
 
     const displayElement = document.getElementById('display');
+    const subDisplayElement = document.getElementById('subDisplay');
+    const currencyLabel = document.getElementById('currencyLabel');
+
+    // Fetch live rate immediately
+    fetch('https://api.exchangerate-api.com/v4/latest/USD')
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.rates && data.rates.JPY) {
+                exchangeRate = data.rates.JPY;
+                updateDisplay(); // update initial sub-display with live rate
+            }
+        })
+        .catch(err => console.log('Currency fetch failed, using fallback 150.0'));
 
     function updateDisplay() {
-        // Simple formatting to avoid massive decimals or overflow
+        // Main Display Logic
         let displayValue = currentInput;
         if (displayValue.length > 9) {
             displayValue = displayValue.substring(0, 9);
         }
         displayElement.innerText = displayValue;
         
-        // Dynamic font size for long numbers
-        if (displayValue.length > 6) {
-            displayElement.style.fontSize = '50px';
+        // Font scaling
+        if (displayValue.length > 6) displayElement.style.fontSize = '50px';
+        else displayElement.style.fontSize = '70px';
+
+        // Currency Conversion Logic
+        const numericValue = parseFloat(currentInput);
+        if (!isNaN(numericValue)) {
+            let converted;
+            let symbol;
+            
+            if (currencyMode === 'USD_TO_JPY') {
+                converted = (numericValue * exchangeRate).toFixed(2);
+                symbol = '¥';
+            } else {
+                converted = (numericValue / exchangeRate).toFixed(2);
+                symbol = '$';
+            }
+            
+            // Format with commas
+            subDisplayElement.innerText = symbol + ' ' + parseFloat(converted).toLocaleString();
         } else {
-            displayElement.style.fontSize = '80px';
+            subDisplayElement.innerText = '';
         }
+    }
+
+    function toggleCurrencyMode() {
+        if (currencyMode === 'USD_TO_JPY') {
+            currencyMode = 'JPY_TO_USD';
+            currencyLabel.innerHTML = 'JPY<br>↓<br>USD';
+        } else {
+            currencyMode = 'USD_TO_JPY';
+            currencyLabel.innerHTML = 'USD<br>↓<br>JPY';
+        }
+        updateDisplay();
     }
 
     function appendNumber(number) {
@@ -216,20 +263,11 @@
         let result;
 
         switch (operation) {
-            case '+':
-                result = prev + current;
-                break;
-            case '-':
-                result = prev - current;
-                break;
-            case '*':
-                result = prev * current;
-                break;
-            case '/':
-                result = prev / current;
-                break;
-            default:
-                return;
+            case '+': result = prev + current; break;
+            case '-': result = prev - current; break;
+            case '*': result = prev * current; break;
+            case '/': result = prev / current; break;
+            default: return;
         }
 
         currentInput = result.toString();
