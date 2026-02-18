@@ -1,0 +1,23 @@
+{
+  "name": "openclaw-poc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harobot888-wq/openclaw-poc.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/harobot888-wq/openclaw-poc/issues"
+  },
+  "homepage": "https://github.com/harobot888-wq/openclaw-poc#readme",
+  "devDependencies": {
+    "netlify-cli": "^23.15.1"
+  }
+}

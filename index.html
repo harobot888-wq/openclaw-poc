@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>White Calculator</title>
+    <title>Black Calculator</title>
     <style>
         body {
-            background-color: #ffffff; /* White Background */
-            color: #333;
+            background-color: #000000; /* Black Background */
+            color: #ffffff;
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
@@ -27,10 +27,9 @@
             justify-content: flex-end;
             height: 100%;
             max-height: 700px;
-            background: #f8f9fa; /* Light Gray Container */
+            background: #000000; /* Black Container */
             border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: 1px solid #eee;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .display-container {
@@ -42,7 +41,7 @@
         .display {
             font-size: 70px;
             font-weight: 300;
-            color: #222;
+            color: #ffffff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -50,11 +49,13 @@
         }
 
         .sub-display {
-            font-size: 28px;
-            color: #888;
-            height: 40px;
+            font-size: 24px;
+            color: #a5a5a5;
+            height: auto;
+            min-height: 40px;
             margin-top: 5px;
             font-weight: 400;
+            line-height: 1.2;
         }
 
         .buttons {
@@ -65,7 +66,7 @@
 
         button {
             border: none;
-            border-radius: 20px;
+            border-radius: 50%; /* Circular buttons like iOS */
             font-size: 28px;
             height: 65px;
             width: 65px;
@@ -76,49 +77,47 @@
             align-items: center;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
         button:active {
-            transform: scale(0.95);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            filter: brightness(1.5);
         }
 
-        /* Light Theme Button Styles */
+        /* Dark Theme Button Styles */
         .btn-glass {
-            background: #fff;
-            color: #333;
-            border: 1px solid #e0e0e0;
+            background: #333333;
+            color: #ffffff;
         }
 
         .btn-accent {
-            background: #ff9f0a; /* Orange Accent */
-            color: #fff;
+            background: #ff9f0a;
+            color: #ffffff;
             font-weight: 500;
         }
 
         .btn-op {
-            background: #d4d4d2; /* Light Gray */
-            color: #000;
+            background: #a5a5a5;
+            color: #000000;
             font-weight: 500;
         }
         
         .btn-zero {
             grid-column: span 2;
             width: 100%;
-            border-radius: 20px;
+            border-radius: 35px;
             padding-left: 25px;
             justify-content: flex-start;
         }
         
         .btn-currency {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
-            line-height: 1.2;
+            line-height: 1.1;
             flex-direction: column;
-            background: #eef;
-            color: #4a4aff;
-            border: 1px solid #ccf;
+            background: #1c1c1e;
+            color: #0a84ff;
+            border: 1px solid #0a84ff;
+            border-radius: 15px;
         }
 
         @media (max-width: 360px) {
@@ -133,7 +132,7 @@
 <div class="calculator">
     <div class="display-container">
         <div class="display" id="display">0</div>
-        <div class="sub-display" id="subDisplay">¥ 0</div>
+        <div class="sub-display" id="subDisplay">¥ 0<br>HK$ 0</div>
     </div>
 
     <div class="buttons">
@@ -160,7 +159,7 @@
         <button class="btn-glass btn-zero" onclick="appendNumber('0')">0</button>
         <button class="btn-glass" onclick="appendDot()">.</button>
         <button class="btn-currency" onclick="toggleCurrencyMode()">
-            <span id="currencyLabel">USD<br>↓<br>JPY</span>
+            <span id="currencyLabel">USD<br>➔<br>JPY/HKD</span>
         </button>
         <button class="btn-accent" onclick="calculate()">=</button>
     </div>
@@ -173,23 +172,27 @@
     let shouldResetDisplay = false;
     
     // Currency State
-    let exchangeRate = 150.0; // Fallback rate
-    let currencyMode = 'USD_TO_JPY'; // or 'JPY_TO_USD'
+    let rates = { JPY: 150.0, HKD: 7.8 };
+    let baseCurrency = 'USD'; // 'USD', 'JPY', or 'HKD'
 
     const displayElement = document.getElementById('display');
     const subDisplayElement = document.getElementById('subDisplay');
     const currencyLabel = document.getElementById('currencyLabel');
 
-    // Fetch live rate
-    fetch('https://api.exchangerate-api.com/v4/latest/USD')
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.rates && data.rates.JPY) {
-                exchangeRate = data.rates.JPY;
-                updateDisplay();
-            }
-        })
-        .catch(err => console.log('Currency fetch failed'));
+    // Fetch live rates
+    function fetchRates() {
+        fetch('https://api.exchangerate-api.com/v4/latest/USD')
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.rates) {
+                    rates.JPY = data.rates.JPY;
+                    rates.HKD = data.rates.HKD;
+                    updateDisplay();
+                }
+            })
+            .catch(err => console.log('Currency fetch failed'));
+    }
+    fetchRates();
 
     function updateDisplay() {
         let displayValue = currentInput;
@@ -203,30 +206,35 @@
 
         const numericValue = parseFloat(currentInput);
         if (!isNaN(numericValue)) {
-            let converted;
-            let symbol;
+            let outputs = [];
             
-            if (currencyMode === 'USD_TO_JPY') {
-                converted = (numericValue * exchangeRate).toFixed(2);
-                symbol = '¥';
-            } else {
-                converted = (numericValue / exchangeRate).toFixed(2);
-                symbol = '$';
+            if (baseCurrency === 'USD') {
+                outputs.push('¥ ' + (numericValue * rates.JPY).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                outputs.push('HK$ ' + (numericValue * rates.HKD).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+            } else if (baseCurrency === 'JPY') {
+                outputs.push('$ ' + (numericValue / rates.JPY).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                outputs.push('HK$ ' + (numericValue / rates.JPY * rates.HKD).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+            } else if (baseCurrency === 'HKD') {
+                outputs.push('$ ' + (numericValue / rates.HKD).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                outputs.push('¥ ' + (numericValue / rates.HKD * rates.JPY).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
             }
             
-            subDisplayElement.innerText = symbol + ' ' + parseFloat(converted).toLocaleString();
+            subDisplayElement.innerHTML = outputs.join('<br>');
         } else {
             subDisplayElement.innerText = '';
         }
     }
 
     function toggleCurrencyMode() {
-        if (currencyMode === 'USD_TO_JPY') {
-            currencyMode = 'JPY_TO_USD';
-            currencyLabel.innerHTML = 'JPY<br>↓<br>USD';
+        if (baseCurrency === 'USD') {
+            baseCurrency = 'JPY';
+            currencyLabel.innerHTML = 'JPY<br>➔<br>USD/HKD';
+        } else if (baseCurrency === 'JPY') {
+            baseCurrency = 'HKD';
+            currencyLabel.innerHTML = 'HKD<br>➔<br>USD/JPY';
         } else {
-            currencyMode = 'USD_TO_JPY';
-            currencyLabel.innerHTML = 'USD<br>↓<br>JPY';
+            baseCurrency = 'USD';
+            currencyLabel.innerHTML = 'USD<br>➔<br>JPY/HKD';
         }
         updateDisplay();
     }
