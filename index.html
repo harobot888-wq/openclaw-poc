@@ -26,36 +26,59 @@
             flex-direction: column;
             justify-content: flex-end;
             height: 100%;
-            max-height: 700px;
+            max-height: 750px;
             background: #000000; /* Black Container */
             border-radius: 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .display-container {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-align: right;
             padding-right: 10px;
         }
 
         .display {
-            font-size: 70px;
+            font-size: 60px;
             font-weight: 300;
             color: #ffffff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            height: 80px;
+            height: 70px;
         }
 
         .sub-display {
             font-size: 24px;
             color: #a5a5a5;
             height: auto;
-            min-height: 40px;
+            min-height: 30px;
             margin-top: 5px;
             font-weight: 400;
             line-height: 1.2;
+        }
+
+        .currency-selectors {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 10px;
+        }
+
+        .currency-select {
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 45%;
+        }
+
+        .arrow {
+            color: #ff9f0a;
+            font-weight: bold;
         }
 
         .buttons {
@@ -109,17 +132,6 @@
             justify-content: flex-start;
         }
         
-        .btn-currency {
-            font-size: 12px;
-            font-weight: bold;
-            line-height: 1.1;
-            flex-direction: column;
-            background: #1c1c1e;
-            color: #0a84ff;
-            border: 1px solid #0a84ff;
-            border-radius: 15px;
-        }
-
         @media (max-width: 360px) {
             button { height: 60px; width: 60px; font-size: 24px; }
             .display { font-size: 50px; }
@@ -132,7 +144,17 @@
 <div class="calculator">
     <div class="display-container">
         <div class="display" id="display">0</div>
-        <div class="sub-display" id="subDisplay">¥ 0<br>HK$ 0</div>
+        <div class="sub-display" id="subDisplay">Loading...</div>
+    </div>
+
+    <div class="currency-selectors">
+        <select id="fromCurrency" class="currency-select" onchange="updateDisplay()">
+            <!-- Options populated by JS -->
+        </select>
+        <span class="arrow">➔</span>
+        <select id="toCurrency" class="currency-select" onchange="updateDisplay()">
+            <!-- Options populated by JS -->
+        </select>
     </div>
 
     <div class="buttons">
@@ -158,9 +180,6 @@
 
         <button class="btn-glass btn-zero" onclick="appendNumber('0')">0</button>
         <button class="btn-glass" onclick="appendDot()">.</button>
-        <button class="btn-currency" onclick="toggleCurrencyMode()">
-            <span id="currencyLabel">USD<br>➔<br>JPY/HKD</span>
-        </button>
         <button class="btn-accent" onclick="calculate()">=</button>
     </div>
 </div>
@@ -172,12 +191,33 @@
     let shouldResetDisplay = false;
     
     // Currency State
-    let rates = { JPY: 150.0, HKD: 7.8 };
-    let baseCurrency = 'USD'; // 'USD', 'JPY', or 'HKD'
+    const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'HKD', 'CNY', 'AUD', 'CAD', 'SGD', 'KRW'];
+    let rates = {}; // Base USD
 
     const displayElement = document.getElementById('display');
     const subDisplayElement = document.getElementById('subDisplay');
-    const currencyLabel = document.getElementById('currencyLabel');
+    const fromSelect = document.getElementById('fromCurrency');
+    const toSelect = document.getElementById('toCurrency');
+
+    // Initialize Dropdowns
+    function initDropdowns() {
+        currencies.forEach(currency => {
+            let option1 = document.createElement("option");
+            option1.text = currency;
+            option1.value = currency;
+            fromSelect.add(option1);
+
+            let option2 = document.createElement("option");
+            option2.text = currency;
+            option2.value = currency;
+            toSelect.add(option2);
+        });
+        
+        // Defaults
+        fromSelect.value = 'USD';
+        toSelect.value = 'JPY';
+    }
+    initDropdowns();
 
     // Fetch live rates
     function fetchRates() {
@@ -185,58 +225,48 @@
             .then(response => response.json())
             .then(data => {
                 if (data && data.rates) {
-                    rates.JPY = data.rates.JPY;
-                    rates.HKD = data.rates.HKD;
+                    rates = data.rates;
                     updateDisplay();
                 }
             })
-            .catch(err => console.log('Currency fetch failed'));
+            .catch(err => {
+                console.log('Currency fetch failed');
+                subDisplayElement.innerText = "Rate Error";
+            });
     }
     fetchRates();
 
     function updateDisplay() {
         let displayValue = currentInput;
+        // Basic font sizing
         if (displayValue.length > 9) {
             displayValue = displayValue.substring(0, 9);
         }
         displayElement.innerText = displayValue;
         
-        if (displayValue.length > 6) displayElement.style.fontSize = '50px';
-        else displayElement.style.fontSize = '70px';
+        if (displayValue.length > 7) displayElement.style.fontSize = '50px';
+        else displayElement.style.fontSize = '60px';
 
+        // Conversion
         const numericValue = parseFloat(currentInput);
-        if (!isNaN(numericValue)) {
-            let outputs = [];
+        if (!isNaN(numericValue) && rates[fromSelect.value] && rates[toSelect.value]) {
+            // Convert From -> USD -> To
+            // Amount / Rate(From) * Rate(To)
+            const fromRate = rates[fromSelect.value]; // Rate of 'From' against USD
+            const toRate = rates[toSelect.value];     // Rate of 'To' against USD
             
-            if (baseCurrency === 'USD') {
-                outputs.push('¥ ' + (numericValue * rates.JPY).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-                outputs.push('HK$ ' + (numericValue * rates.HKD).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-            } else if (baseCurrency === 'JPY') {
-                outputs.push('$ ' + (numericValue / rates.JPY).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-                outputs.push('HK$ ' + (numericValue / rates.JPY * rates.HKD).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-            } else if (baseCurrency === 'HKD') {
-                outputs.push('$ ' + (numericValue / rates.HKD).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-                outputs.push('¥ ' + (numericValue / rates.HKD * rates.JPY).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+            const converted = (numericValue / fromRate) * toRate;
+            
+            // Format
+            const symbol = toSelect.value;
+            subDisplayElement.innerText = `${toSelect.value} ${converted.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        } else {
+            if (Object.keys(rates).length === 0) {
+                 subDisplayElement.innerText = "Loading rates...";
+            } else {
+                 subDisplayElement.innerText = "";
             }
-            
-            subDisplayElement.innerHTML = outputs.join('<br>');
-        } else {
-            subDisplayElement.innerText = '';
         }
-    }
-
-    function toggleCurrencyMode() {
-        if (baseCurrency === 'USD') {
-            baseCurrency = 'JPY';
-            currencyLabel.innerHTML = 'JPY<br>➔<br>USD/HKD';
-        } else if (baseCurrency === 'JPY') {
-            baseCurrency = 'HKD';
-            currencyLabel.innerHTML = 'HKD<br>➔<br>USD/JPY';
-        } else {
-            baseCurrency = 'USD';
-            currencyLabel.innerHTML = 'USD<br>➔<br>JPY/HKD';
-        }
-        updateDisplay();
     }
 
     function appendNumber(number) {
@@ -299,7 +329,13 @@
             default: return;
         }
 
+        // Limit result length/precision to avoid overflow
         currentInput = result.toString();
+        // Simple check for Scientific notation or too long
+        if (currentInput.length > 10) {
+             currentInput = result.toPrecision(10).toString();
+        }
+
         operation = null;
         previousInput = null;
         shouldResetDisplay = true;
