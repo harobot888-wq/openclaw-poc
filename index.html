@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Watercolor Calculator</title>
+    <title>Black Theme Watercolor Calculator</title>
     <style>
         body {
-            /* Watercolor Wash Background */
-            background-color: #f0f4f8;
+            /* Dark Watercolor Wash Background */
+            background-color: #0a0a0a;
             background-image: 
-                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+                radial-gradient(at 0% 0%, hsla(253,16%,20%,0.8) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,15%,0.8) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,15%,0.8) 0, transparent 50%);
             background: 
-                radial-gradient(circle at 10% 20%, rgba(216, 241, 230, 0.46) 0%, rgba(233, 246, 255, 0.1) 90.1%),
-                radial-gradient(circle at 90% 80%, rgba(255, 236, 210, 0.5) 0%, rgba(255, 255, 255, 0) 60%),
-                linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+                radial-gradient(circle at 10% 20%, rgba(20, 25, 40, 0.6) 0%, rgba(10, 15, 30, 0.3) 90.1%),
+                radial-gradient(circle at 90% 80%, rgba(40, 20, 25, 0.4) 0%, rgba(0, 0, 0, 0) 60%),
+                linear-gradient(135deg, #0f0f23 0%, #1a0f2b 50%, #0a0a1a 100%);
             background-size: cover;
-            color: #2d3436;
+            color: #e0e0e0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             justify-content: center;
@@ -38,13 +38,13 @@
             height: 100%;
             max-height: 750px;
             
-            /* Glassy / Wet Paper Effect */
-            background: rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            /* Dark Glassy / Wet Paper Effect */
+            background: rgba(20, 20, 25, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(80, 80, 90, 0.5);
             border-radius: 30px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .display-container {
@@ -56,17 +56,17 @@
         .display {
             font-size: 60px;
             font-weight: 300;
-            color: #2d3436; /* Dark Indigo/Grey */
+            color: #ffffff; /* Bright white for contrast */
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             height: 70px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3), 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .sub-display {
             font-size: 24px;
-            color: #636e72;
+            color: #b0b0b0;
             height: auto;
             min-height: 30px;
             margin-top: 5px;
@@ -83,22 +83,28 @@
         }
 
         .currency-select {
-            background-color: rgba(255, 255, 255, 0.5);
-            color: #2d3436;
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            background-color: rgba(40, 40, 45, 0.8);
+            color: #e0e0e0;
+            border: 1px solid rgba(100, 100, 110, 0.5);
             padding: 8px;
             border-radius: 12px;
             font-size: 14px;
             width: 45%;
             outline: none;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .currency-select option {
+            background: #2a2a2f;
+            color: #e0e0e0;
         }
 
         .arrow {
-            color: #6c5ce7;
+            color: #667eea;
             font-weight: bold;
             font-size: 18px;
+            text-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
         }
 
         .buttons {
@@ -109,7 +115,7 @@
 
         button {
             border: none;
-            /* Organic/Watercolor Blob Shape */
+            /* Organic Blob Shape */
             border-radius: 50%;
             font-size: 26px;
             height: 65px;
@@ -121,36 +127,39 @@
             align-items: center;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05), inset 0 -2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
             position: relative;
             overflow: hidden;
         }
 
         button:active {
             transform: scale(0.95);
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.4), 0 2px 5px rgba(0,0,0,0.5);
         }
 
-        /* Watercolor Theme Buttons */
+        /* Dark Theme Buttons */
         
-        /* Numbers: Watery White/Blue */
+        /* Numbers: Dark Glass */
         .btn-glass {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(230, 240, 255, 0.6) 100%);
-            color: #2d3436;
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            background: linear-gradient(135deg, rgba(50, 50, 55, 0.9) 0%, rgba(30, 30, 35, 0.8) 100%);
+            color: #e0e0e0;
+            border: 1px solid rgba(80, 80, 90, 0.5);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
 
-        /* Operations (Right Col): Wash of Purple/Blue */
+        /* Operations (Right Col): Dark Purple/Blue Glow */
         .btn-accent {
-            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
-            color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 50%, #1a202c 100%);
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 8px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
-        /* Functions (Top Row): Wash of Teal/Green */
+        /* Functions (Top Row): Dark Teal/Cyan Glow */
         .btn-op {
-            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-            color: #2d3436;
+            background: linear-gradient(135deg, #2d5a77 0%, #1e4a62 100%);
+            color: #e0e0e0;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
         
         .btn-zero {
@@ -161,13 +170,14 @@
             justify-content: flex-start;
         }
         
-        /* Watercolor stain effect overlay (pseudo-element) for texture */
+        /* Dark shine effect overlay */
         button::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent);
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), transparent 50%);
             pointer-events: none;
+            opacity: 0.7;
         }
 
         @media (max-width: 360px) {
